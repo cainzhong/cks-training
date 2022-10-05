@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - image: nginx:1.19.4
+    name: nginx
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh", "-c", "while :; do apt; sleep 30 ; done"]
+  nodeSelector:
+    kubernetes.io/hostname: ubuntu-k8s-master1
+  tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+    
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: httpd
+  labels:
+    app: httpd
+spec:
+  containers:
+  - image: httpd:2.4
+    name: httpd
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh", "-c", "while :; do echo 'itsma:x:1999:1999::/home/itsma:/bin/bash' >> /etc/passwd; sleep 30 ; done"]
+  nodeSelector:
+    kubernetes.io/hostname: ubuntu-k8s-master1
+  tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"

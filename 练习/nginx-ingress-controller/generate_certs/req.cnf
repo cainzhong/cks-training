@@ -1,0 +1,21 @@
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+x509_extensions = v3_req
+distinguished_name = dn
+
+[dn]
+C = CN
+ST = Shanghai
+L = Shanghai
+O = Micro Focus
+emailAddress = tzhong@tzhong.com
+CN = cain.tzhong.com
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1   = adam.tzhong.com
+DNS.2   = eve.tzhong.com

@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: source-nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - image: nginx:1.19.4
+    name: nginx
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: selected-nginx
+  labels:
+    app: nginx
+    role: db
+spec:
+  containers:
+  - image: nginx:1.19.4
+    name: nginx
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: destination-nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - image: nginx:1.19.4
+    name: nginx
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: destination-hello-app
+  labels:
+    app: hello-app
+spec:
+  containers:
+  - image: gcr.io/google-samples/hello-app:2.0
+    name: hello-app

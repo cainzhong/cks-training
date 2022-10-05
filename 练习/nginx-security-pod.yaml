@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-security-pod
+spec:
+  containers:
+  - name: nginx
+    image: docker.io/library/nginx:1.19.4
+    securityContext:
+      privileged: false
+      capabilities:
+        drop:
+        - all
+        add: ["chown","net_bind_service"]
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false

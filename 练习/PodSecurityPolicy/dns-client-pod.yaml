@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: dns-client
+  name: dns-client
+  namespace: default
+spec:
+  containers:
+ # - image: infoblox/dnstools
+  - image: itom-docker.shcartifactory.swinfra.net/hpeswitomsandbox/caintools:v1
+    name: dns-client
+    stdin: true
+    stdinOnce: true
+    tty: true
