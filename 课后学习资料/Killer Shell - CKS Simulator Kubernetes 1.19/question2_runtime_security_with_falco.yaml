@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.19.4
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "while :; do apt; sleep 30 ; done"]
+        ports:
+        - containerPort: 80
+      nodeSelector:
+        kubernetes.io/hostname: ubuntu-k8s-master1
+      tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpd
+  template:
+    metadata:
+      labels:
+        app: httpd
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:2.4
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "while :; do echo 'itsma:x:1999:1999::/home/itsma:/bin/bash' >> /etc/passwd; sleep 30 ; done"]
+        ports:
+        - containerPort: 80
+      nodeSelector:
+        kubernetes.io/hostname: ubuntu-k8s-master1
+      tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"

@@ -1,0 +1,34 @@
+# kubectl create deploy immutable-deployment --image=nginx:1.19.2 --dry-run=client -o yaml > immutable-deployment-new.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: immutable-deployment
+  name: immutable-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immutable-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: immutable-deployment
+    spec:
+      containers:
+      - image: nginx:1.19.2
+        name: nginx
+        command: ['sh', '-c', 'tail -f /dev/null']
+        resources: {}
+        securityContext:                      # add
+          readOnlyRootFilesystem: true        # add
+        volumeMounts:                         # add
+        - name: tmp                           # add
+          mountPath: /tmp                     # add
+      volumes:                                # add
+      - name: tmp                             # add
+        emptyDir: {}                          # add
+status: {}

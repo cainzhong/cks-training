@@ -1,0 +1,24 @@
+# kubectl create deployment apparmor --image=nginx:1.19.2 --dry-run=client -o yaml > apparmor-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: apparmor
+  name: apparmor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apparmor
+  template:
+    metadata:
+      labels:
+        app: apparmor
+      annotations:                                                                    # add
+        container.apparmor.security.beta.kubernetes.io/c1: localhost/very-secure      # add
+    spec:
+      containers:
+      - image: nginx:1.19.2
+        name: c1                # change
+      nodeSelector:             # add
+        security: apparmor      # add

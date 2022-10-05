@@ -1,0 +1,53 @@
+# In Namespace team-pink there is an existing Nginx Ingress resources named secure which accepts two paths /app and /api which point to different ClusterIP Services.
+# From your main terminal you can connect to it using for example:
+#   HTTP: curl -v http://secure-ingress.test:31080/app
+#   HTTPS: curl -kv https://secure-ingress.test:31443/app
+# Right now it uses a default generated TLS certificate by the Nginx Ingress Controller.
+# You're asked to instead use the key and certificate provided at /opt/course/15/tls.key and /opt/course/15/tls.crt. As it's a self-signed certificate you need to use curl -k when connecting to it
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-pink
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testsecret-tls
+  namespace: team-pink
+data:
+  tls.crt: base64 encoded cert    # cat /opt/course/15/tls.crt | base64 -w 0
+  tls.key: base64 encoded key     # cat /opt/course/15/tls.key | base64 -w 0
+type: kubernetes.io/tls
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: secure
+  namespace: team-pink
+spec:
+  tls:                              # add
+  - hosts:                          # add
+      - secure-ingress.test         # add
+    secretName: testsecret-tls      # add
+  rules:
+  - host: secure-ingress.test
+    http:
+      paths:
+      - path: /app
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80

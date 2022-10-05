@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-red
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-log-hacker
+  namespace: team-red
+  labels:
+    app: busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      containers:
+      - name: busybox
+        image: busybox:1.32
+        imagePullPolicy: IfNotPresent  
+        command: ["/bin/sh","-c","while true;do echo hello;sleep 1;done"]
+        volumeMounts:
+        - mountPath: /docker
+          name: docker-volume
+      volumes:
+      - name: docker-volume
+        hostPath:
+          # directory location on host
+          path: /var/lib/containerd
+          # this field is optional
+          type: Directory

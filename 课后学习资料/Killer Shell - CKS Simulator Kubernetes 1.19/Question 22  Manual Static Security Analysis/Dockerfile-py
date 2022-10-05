@@ -1,0 +1,12 @@
+# --- Release with Alpine ----
+FROM python:3.6-alpine3.7 AS release
+# Create app directory
+WORKDIR /app
+
+COPY --from=dependencies /app/requirements.txt ./
+COPY --from=dependencies /root/.cache /root/.cache
+
+# Install app dependencies
+RUN pip install -r requirements.txt
+COPY --from=build /app/ ./
+CMD ["gunicorn", "--config", "./gunicorn_app/conf/gunicorn_config.py", "gunicorn_app:app"]
