@@ -1,0 +1,150 @@
+### 题目：
+
+创建一个replicas为2的StatefulSet，用Headless Service的方式访问，当访问到编号为0的Pod时，返回”Hello World“ ，当访问到编号为1的Pod时，返回“Goodbye World”。
+
+
+
+### 解：
+
+1. 创建StatefulSet，Service，PV，PVC
+  kubectl apply -f statefulset-nginx-pv-pvc-all-in-one.yaml
+
+  ```yaml
+  
+  ---
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: www-web-0
+    labels:
+      type: local
+  spec:
+    storageClassName: manual
+    capacity:
+      storage: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Retain
+    nfs:
+      path: /var/vols/nfs/www-web-0
+      server: 192.168.56.101
+    volumeMode: Filesystem
+      
+  ---
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: www-web-0
+  spec:
+    storageClassName: manual
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  
+  ---
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: www-web-1
+    labels:
+      type: local
+  spec:
+    storageClassName: manual
+    capacity:
+      storage: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Retain
+    nfs:
+      path: /var/vols/nfs/www-web-1
+      server: 192.168.56.101
+    volumeMode: Filesystem
+      
+  ---
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: www-web-1
+  spec:
+    storageClassName: manual
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  
+  ---
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: nginx
+    labels:
+      app: nginx
+  spec:
+    ports:
+    - port: 80
+      name: web
+    clusterIP: None
+    selector:
+      app: nginx
+  
+  ---
+  apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    name: web
+  spec:
+    serviceName: "nginx"
+    replicas: 2
+    selector:
+      matchLabels:
+        app: nginx
+    template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        containers:
+        - name: nginx
+          image: nginx:1.19.4
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+            name: web
+          volumeMounts:
+          - name: www
+            mountPath: /usr/share/nginx/html
+    volumeClaimTemplates:
+    - metadata:
+        name: www
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        storageClassName: manual
+        resources:
+          requests:
+            storage: 1Gi
+  ```
+
+  
+
+2. 登录到NFS Server，执行以下命令：
+
+  ```shell
+  echo "Hello World" > /var/vols/nfs/www-web-0/index.html
+  echo "Goodbye World" > /var/vols/nfs/www-web-1/index.html
+  ```
+
+  
+
+3. 测试
+
+  ```shell
+  kubectl run -it --rm --image=infoblox/dnstools dns-client
+  curl web-0.nginx.default.svc.cluster.local
+  curl web-1.nginx.default.svc.cluster.local
+  ```
+
+  

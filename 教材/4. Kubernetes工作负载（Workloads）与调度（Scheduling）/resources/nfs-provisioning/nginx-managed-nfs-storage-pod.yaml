@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-managed-nfs-storage
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.19.4
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+      name: web
+    volumeMounts:
+    - name: managed-nfs-storage
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: managed-nfs-storage
+    persistentVolumeClaim:
+      claimName: managed-nfs-storage-pvc1

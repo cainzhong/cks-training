@@ -1,0 +1,70 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard
+  # annotations:
+  #   "storageclass.kubernetes.io/is-default-class": true
+# provisioner: kubernetes.io/aws-ebs
+# parameters:
+  # type: gp2
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+# mountOptions:
+#   - debug
+volumeBindingMode: Immediate
+
+---
+# Added by cainzhong
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rook-nfs-pv
+  namespace: rook-nfs
+  labels:
+    type: local
+spec:
+  storageClassName: rook-nfs
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteMany
+  # hostPath:
+  #   path: "/mnt/data"
+  nfs:
+    path: /var/vols/itom/itsma/global-volume
+    server: shc-sma-cd74.hpeswlab.net
+
+---
+# A default storageclass must be present
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-default-claim
+  namespace: rook-nfs
+spec:
+  storageClassName: rook-nfs
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: nfs.rook.io/v1alpha1
+kind: NFSServer
+metadata:
+  name: rook-nfs
+  namespace: rook-nfs
+spec:
+  replicas: 1
+  exports:
+  - name: share1
+    server:
+      accessMode: ReadWrite
+      squash: "none"
+    # A Persistent Volume Claim must be created before creating NFS CRD instance.
+    persistentVolumeClaim:
+      claimName: nfs-default-claim
+  # A key/value list of annotations
+  annotations:
+    rook: nfs

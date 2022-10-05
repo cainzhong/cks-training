@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-pvc-template
+  labels:
+    app: nginx-pvc-template
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx-pvc-template
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-pvc-template-sts
+spec:
+  serviceName: "nginx-pvc-template"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-pvc-template
+  template:
+    metadata:
+      labels:
+        app: nginx-pvc-template
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.19.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: managed-nfs-storage
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: managed-nfs-storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: managed-nfs-storage
+      resources:
+        requests:
+          storage: 1Gi

@@ -1,0 +1,78 @@
+# nginx-volume-demo.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-logs
+  labels:
+    pv: nginx
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  # Not restoring PV because it doesn't have a snapshot and its reclaim policy is Delete.
+  # https://github.com/vmware-tanzu/velero/issues/1145
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    # mkdir /var/vols/itom/itsma/global-volume/nginx
+    path: /var/vols/itom/itsma/global-volume/nginx
+    server: shc-sma-cd74.hpeswlab.net
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nginx-logs
+  namespace: nginx
+  labels:
+    app: nginx
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi
+  selector:
+    matchLabels:
+      pv: nginx
+      
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+        - name: nginx-logs
+          persistentVolumeClaim:
+           claimName: nginx-logs
+      containers:
+      - image: nginx:1.17.6
+        name: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - mountPath: "/var/log/nginx"
+            name: nginx-logs
+            readOnly: false

@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nfs-client-provisioner
+spec:
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nfs-client-provisioner
+    spec:
+      serviceAccountName: nfs-client-provisioner
+      containers:
+        - name: nfs-client-provisioner
+          image: quay.io/external_storage/nfs-client-provisioner:latest
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: example.com/nfs
+            - name: NFS_SERVER
+              # NFS Server IP
+              value: 192.168.56.101
+            - name: NFS_PATH
+              # NFS exported directory
+              value: /var/vols/nfs/dynamic
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            # NFS Server IP
+            server: 192.168.56.101
+            # NFS exported directory
+            path: /var/vols/nfs/dynamic
